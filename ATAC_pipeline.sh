@@ -275,6 +275,7 @@ motif in footprint with -2k,gene body
 # Motif-based analysis of large nucleotide data sets using MEME-ChIP
 # An ATAC-seq atlas of chromatin accessibility in mouse tissues (nature)
 # Dynamic Gene Regulatory Networks of Human Myeloid Differentiation (cell system)
+# Dynamic trans-Acting Factor Colocalization in Human Cells
 
 
 ## SAM file description
