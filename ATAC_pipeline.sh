@@ -273,6 +273,8 @@ motif in footprint with -2k,gene body
 # Evolutionary flexibility in flooding response circuitry in angiosperms
 # Profiling of Accessible Chromatin Regions across Multiple Plant Species and Cell Types Reveals Common Gene Regulatory Principles and New Control Modules
 # Motif-based analysis of large nucleotide data sets using MEME-ChIP
+# An ATAC-seq atlas of chromatin accessibility in mouse tissues (nature)
+# Dynamic Gene Regulatory Networks of Human Myeloid Differentiation (cell system)
 
 
 ## SAM file description
