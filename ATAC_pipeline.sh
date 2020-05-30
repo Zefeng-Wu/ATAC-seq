@@ -276,6 +276,7 @@ motif in footprint with -2k,gene body
 # An ATAC-seq atlas of chromatin accessibility in mouse tissues (nature)
 # Dynamic Gene Regulatory Networks of Human Myeloid Differentiation (cell system)
 # Dynamic trans-Acting Factor Colocalization in Human Cells
+# Mouse regulatory DNA landscapes reveal global principles of cis-regulatory evolution
 
 
 ## SAM file description
