@@ -67,7 +67,7 @@ for fq in $(ls 1c_trimed_fastq/*.fastq | sed 's/_[1-2].fastq//g'| uniq); do echo
 ### get uniq mapping alignment (or mapping quality>=2) # will lead to un-paired reads
 for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done # some strict
 # nohup sh -c 'for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done' &
-# samtools view -bSq 2 file.sam > filtered.bam
+# for m in $(ls 2raw_alignement_results/*.sam); do echo $m;  samtools view -bSq 2 $m  >3uniq_mapped_results/$(basename ${m%.sam}).q2.bam;done
 
 ### convert sam to sorted bam
 for m in $(ls 3uniq_mapped_results/*.sam); do echo $m; picard SortSam  INPUT=$m OUTPUT=4uniq_mapped_results_sort/$(basename ${m%.sam}).sorted.bam SO=coordinate; done
