@@ -71,7 +71,7 @@ for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e 
 
 ### convert sam to sorted bam
 for m in $(ls 3uniq_mapped_results/*.sam); do echo $m; picard SortSam  INPUT=$m OUTPUT=4uniq_mapped_results_sort/$(basename ${m%.sam}).sorted.bam SO=coordinate; done
-# for m in $(ls 3uniq_mapped_results/*.bam); do samtools sort $m 4uniq_mapped_results_sort/$(basename ${m%.bam}).sorted; done
+# for m in $(ls 3uniq_mapped_results/*.bam); do samtools sort $m 4uniq_mapped_results_sort/$(basename ${m%.q2.bam}).sorted; done
 
 
 ### Remove PCR duplicated reads (or Picard-tools)
