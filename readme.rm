@@ -135,6 +135,8 @@ mkdir 7b_fragemnt_size_distribution
 
 #for m in $(ls 7downsampled_replicates_results/*.bam); do alignmentSieve --numberOfProcessors 25 --ATACshift --bam $m -o 7a_fragment_shift_result/$(basename $m).tmp.bam;done
 #for m in $(ls 7a_fragment_shift_result/*.tmp.bam); do samtools sort -@ 20 -O bam -o 7a_fragment_shift_result/$(basename ${m%.tmp.bam}) $m; samtools index -@ 20 7a_fragment_shift_result/$(basename ${m%.tmp.bam}); rm $m; done
+#samtools index -@ 8 sample1.shifted.bam
+
 for m in $(ls 7downsampled_replicates_results/*.bam)
 do
 	echo $m
@@ -169,6 +171,11 @@ done
 
 
 ### peak calling (homer,macs(macs2 callpeak -f BAMPE -q 0.001 --broad- cutoff 0.01 -g 17e9 --bw 300),hopspot:FDR < 0.01 with 8 reads,HMMRATAC)
+
+## MACS2
+#make macs2
+#macs2 callpeak -f BAMPE -g hs --keep-dup all --cutoff-analysis -n sample1  -t sample1.shifted.bam --outdir macs2/sample1 2> macs2.log
+
 
 mkdir 8a_peak_calling_result_hmmratac #(erro with no tag )
 
