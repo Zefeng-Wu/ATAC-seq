@@ -11,18 +11,17 @@
 
 ### Fastq reads adapter detecting
 
-mkdir 1b_adapters
-adapter_detector="/home/WZF/softwares/detect_adapter.py"
-
-for m in $(ls $fastq_files_dir/*.fastq); do echo $m; python3 $adapter_detector $m > 1b_adapters/$(basename $m).adpt;done
+	mkdir 1b_adapters
+	adapter_detector="/home/WZF/softwares/detect_adapter.py"
+	for m in $(ls $fastq_files_dir/*.fastq); do echo $m; python3 $adapter_detector $m > 1b_adapters/$(basename $m).adpt;done
 
 ### FASTQ read adaptor trimming
 
-Adapter_error_rate=​0.1
-mkdir 1c_trimed_fastq
+	Adapter_error_rate=​0.1
+	mkdir 1c_trimed_fastq
 
-for fq in $(ls $fastq_files_dir/*.fastq | sed 's/_[1-2].fastq//g'| uniq)
-do echo $fq
+	for fq in $(ls $fastq_files_dir/*.fastq | sed 's/_[1-2].fastq//g'| uniq)
+	do echo $fq
 	prefix=$(basename $fq)
 	a_adapter=$(cat 1b_adapters/${prefix}_1.fastq.adpt)
 	A_adapter=$(cat 1b_adapters/${prefix}_2.fastq.adpt)
@@ -53,42 +52,42 @@ done
 
 ### Read alignment (Bowtie2 aligner)
 
-mkdir 2raw_alignement_results
-mkdir 3uniq_mapped_results
-mkdir 4uniq_mapped_results_sort
-mkdir 5remove_duplicated_results
-mkdir 6remove_Mt_Pt_results
+    mkdir 2raw_alignement_results
+    mkdir 3uniq_mapped_results
+    mkdir 4uniq_mapped_results_sort
+    mkdir 5remove_duplicated_results
+    mkdir 6remove_Mt_Pt_results
 
-bwt2_idx=/home/WZF/genome/Medicago_truncatula/Medicago_truncatula
-mapping_threads=15
+    bwt2_idx=/home/WZF/genome/Medicago_truncatula/Medicago_truncatula
+    mapping_threads=15
 
-for fq in $(ls 1c_trimed_fastq/*.fastq | sed 's/_[1-2].fastq//g'| uniq); do echo $fq; prefix=$(basename $fq); bowtie2 -p $mapping_threads -x $bwt2_idx -1 ${fq}_1.fastq -2 ${fq}_2.fastq  --no-unal --no-mixed --no-discordant -S 2raw_alignement_results/${prefix}.sam >>bt2_mapping_log; done  
+    for fq in $(ls 1c_trimed_fastq/*.fastq | sed 's/_[1-2].fastq//g'| uniq); do echo $fq; prefix=$(basename $fq); bowtie2 -p $mapping_threads -x $bwt2_idx -1 ${fq}_1.fastq -2 ${fq}_2.fastq  --no-unal --no-mixed --no-discordant -S 2raw_alignement_results/${prefix}.sam >>bt2_mapping_log; done  
 
 ### get uniq mapping alignment (or mapping quality>=2) # will lead to un-paired reads
-for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done # some strict
-# nohup sh -c 'for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done' &
-# for m in $(ls 2raw_alignement_results/*.sam); do echo $m;  samtools view -bSq 2 $m  >3uniq_mapped_results/$(basename ${m%.sam}).q2.bam;done
+    for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done # some strict
+    # nohup sh -c 'for m in $(ls 2raw_alignement_results/*.sam); do samtools view -Sh $m | grep -e "^@" -e "XM:i:[012][^0-9]" | grep -v "XS:i:"  >3uniq_mapped_results/$(basename ${m%.sam}).uniq.sam;done' &
+    # for m in $(ls 2raw_alignement_results/*.sam); do echo $m;  samtools view -bSq 2 $m  >3uniq_mapped_results/$(basename ${m%.sam}).q2.bam;done
 
 ### convert sam to sorted bam
-for m in $(ls 3uniq_mapped_results/*.sam); do echo $m; picard SortSam  INPUT=$m OUTPUT=4uniq_mapped_results_sort/$(basename ${m%.sam}).sorted.bam SO=coordinate; done
-# for m in $(ls 3uniq_mapped_results/*.bam); do samtools sort $m 4uniq_mapped_results_sort/$(basename ${m%.q2.bam}).sorted; done
+    for m in $(ls 3uniq_mapped_results/*.sam); do echo $m; picard SortSam  INPUT=$m OUTPUT=4uniq_mapped_results_sort/$(basename ${m%.sam}).sorted.bam SO=coordinate; done
+    # for m in $(ls 3uniq_mapped_results/*.bam); do samtools sort $m 4uniq_mapped_results_sort/$(basename ${m%.q2.bam}).sorted; done
 
 
 ### Remove PCR duplicated reads (or Picard-tools)
-for m in $(ls 4uniq_mapped_results_sort/*.bam); do echo $m; samtools rmdup $m 5remove_duplicated_results/$(basename ${m%.bam}).dedup.bam; done
-#for m in $(ls 4uniq_mapped_results_sort/*.bam);do picard MarkDuplicates INPUT=$m OUTPUT=5remove_duplicated_results/$m METRICS_FILE=5remove_duplicated_results/$m.mark_dup_metrix.txt VALIDATION_STRINGENCY=LENIENT ASSUME_SORTED=true REMOVE_DUPLICATES=false
+    for m in $(ls 4uniq_mapped_results_sort/*.bam); do echo $m; samtools rmdup $m 5remove_duplicated_results/$(basename ${m%.bam}).dedup.bam; done
+    #for m in $(ls 4uniq_mapped_results_sort/*.bam);do picard MarkDuplicates INPUT=$m OUTPUT=5remove_duplicated_results/$m     METRICS_FILE=5remove_duplicated_results/$m.mark_dup_metrix.txt VALIDATION_STRINGENCY=LENIENT ASSUME_SORTED=true REMOVE_DUPLICATES=false
 
 
 ### Remove the reads of chloroplast or mitochondrial genomes
-for m in $(ls 5remove_duplicated_results/*.bam); do samtools index $m;done
-for m in $(ls 5remove_duplicated_results/*.bam); do samtools idxstats $m | cut -f 1 | grep -v 'Mt|Pt' | xargs samtools view -b $m > 6remove_Mt_Pt_results/$(basename $m);done
+    for m in $(ls 5remove_duplicated_results/*.bam); do samtools index $m;done
+    for m in $(ls 5remove_duplicated_results/*.bam); do samtools idxstats $m | cut -f 1 | grep -v 'Mt|Pt' | xargs samtools view -b $m > 6remove_Mt_Pt_results/$(basename $m);done
 
 ### Random sampling to make replicates with eaqul number of reads
-mkdir 7downsampled_replicates_results
-samples=$(ls 6remove_Mt_Pt_results/*.bam | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.bam//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
+    mkdir 7downsampled_replicates_results
+    samples=$(ls 6remove_Mt_Pt_results/*.bam | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.bam//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
 
-for sample in $samples
-do 	#echo $sample #Mt_ATAC_C
+    for sample in $samples
+    do 	#echo $sample #Mt_ATAC_C
 	
 	sample_repeats_files=$(ls 6remove_Mt_Pt_results/$sample*)
 	sample_repeats_num=$(ls 6remove_Mt_Pt_results/$sample*|wc -l) #3
@@ -130,15 +129,15 @@ done
 
 
 ### fragment shift bam and fragement size distribution (deeptools:lose some information and the resulted bam can not be used in other softs,ATACseqQC,or bedpe)
-mkdir 7a_fragment_shift_result
-mkdir 7b_fragemnt_size_distribution
+    mkdir 7a_fragment_shift_result
+    mkdir 7b_fragemnt_size_distribution
 
-#for m in $(ls 7downsampled_replicates_results/*.bam); do alignmentSieve --numberOfProcessors 25 --ATACshift --bam $m -o 7a_fragment_shift_result/$(basename $m).tmp.bam;done
-#for m in $(ls 7a_fragment_shift_result/*.tmp.bam); do samtools sort -@ 20 -O bam -o 7a_fragment_shift_result/$(basename ${m%.tmp.bam}) $m; samtools index -@ 20 7a_fragment_shift_result/$(basename ${m%.tmp.bam}); rm $m; done
-#samtools index -@ 8 sample1.shifted.bam
+    #for m in $(ls 7downsampled_replicates_results/*.bam); do alignmentSieve --numberOfProcessors 25 --ATACshift --bam $m -o 7a_fragment_shift_result/$(basename $m).tmp.bam;done
+    #for m in $(ls 7a_fragment_shift_result/*.tmp.bam); do samtools sort -@ 20 -O bam -o 7a_fragment_shift_result/$(basename ${m%.tmp.bam}) $m; samtools index -@ 20    7a_fragment_shift_result/$(basename ${m%.tmp.bam}); rm $m; done
+    #samtools index -@ 8 sample1.shifted.bam
 
-for m in $(ls 7downsampled_replicates_results/*.bam)
-do
+    for m in $(ls 7downsampled_replicates_results/*.bam)
+    do
 	echo $m
 	if [ -e 7a_fragment_shift_result/$(basename $m) ]
 	then	
@@ -150,12 +149,12 @@ do
 done
 
 ### merge replicates bams #(from original replcated bams or sampled replcated bams, used for footprint) 
-mkdir 7c_merge_replicates_bams 
+    mkdir 7c_merge_replicates_bams 
 
-samples=$(ls 7a_fragment_shift_result/*.bam | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.bam//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
+    samples=$(ls 7a_fragment_shift_result/*.bam | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.bam//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
 
-for sample in $samples
-do 	#echo $sample #Mt_ATAC_C
+    for sample in $samples
+    do 	#echo $sample #Mt_ATAC_C
 	
 	sample_repeats_files=$(ls 7a_fragment_shift_result/$sample*.bam)
 	sample_repeats_num=$(ls 7a_fragment_shift_result/$sample*.bam |wc -l) #3
@@ -173,28 +172,28 @@ done
 ### peak calling (homer,macs(macs2 callpeak -f BAMPE -q 0.001 --broad- cutoff 0.01 -g 17e9 --bw 300),hopspot:FDR < 0.01 with 8 reads,HMMRATAC)
 
 ## MACS2
-#make macs2
-#macs2 callpeak -f BAMPE -g hs --keep-dup all --cutoff-analysis -n sample1  -t sample1.shifted.bam --outdir macs2/sample1 2> macs2.log
+    #make macs2
+    #macs2 callpeak -f BAMPE -g hs --keep-dup all --cutoff-analysis -n sample1  -t sample1.shifted.bam --outdir macs2/sample1 2> macs2.log
 
 
-mkdir 8a_peak_calling_result_hmmratac #(erro with no tag )
+    mkdir 8a_peak_calling_result_hmmratac #(erro with no tag )
 
-for m in $(ls 7a_fragment_shift_result/*.bam); do echo $m; samtools view -H $m| perl -ne 'if(/^@SQ.*?SN:(\w+)\s+LN:(\d+)/){print $1,"\t",$2,"\n"}' > 8a_peak_calling_result_hmmratac/genome.info; java -jar ~/softwares/HMMRATAC_V1.2.10_exe.jar -b $m -i $m.bai -g 8a_peak_calling_result_hmmratac/genome.info -o 8a_peak_calling_result_hmmratac/$(basename ${m%.bam}) ;done
+    for m in $(ls 7a_fragment_shift_result/*.bam); do echo $m; samtools view -H $m| perl -ne 'if(/^@SQ.*?SN:(\w+)\s+LN:(\d+)/){print $1,"\t",$2,"\n"}' > 8a_peak_calling_result_hmmratac/genome.info; java -jar ~/softwares/HMMRATAC_V1.2.10_exe.jar -b $m -i $m.bai -g 8a_peak_calling_result_hmmratac/genome.info -o 8a_peak_calling_result_hmmratac/$(basename ${m%.bam}) ;done
 #---------------------------------------------------------------------------------------------------------------
-mkdir 8b_peak_calling_result_homer # need sam file
+    mkdir 8b_peak_calling_result_homer # need sam file
 
-for m in $(ls 7a_fragment_shift_result/*.bam); do samtools view -@ 5 -h -o ${m%.bam}.sam $m; done
-for m in $(ls 7a_fragment_shift_result/*.sam);do makeTagDirectory 8b_peak_calling_result_homer/$(basename ${m%.sam}) $m -single -format sam -mapq 2; done  # -single: chromsome number >100
-for m in $(ls 7a_fragment_shift_result/*.sam);do findPeaks 8b_peak_calling_result_homer/$(basename ${m%.sam})/ -region -minDist 150 -o 8b_peak_calling_result_homer/$(basename ${m%.sam});done  #(pc,2018,2018 pj)
-for m in $(ls 8b_peak_calling_result_homer/*.peak); do grep -v "#" $m  | awk 'OFS="\t"{print $2,$3,$4,$1,$8,$5}' > $m.bed;done
+    for m in $(ls 7a_fragment_shift_result/*.bam); do samtools view -@ 5 -h -o ${m%.bam}.sam $m; done
+    for m in $(ls 7a_fragment_shift_result/*.sam);do makeTagDirectory 8b_peak_calling_result_homer/$(basename ${m%.sam}) $m -single -format sam -mapq 2; done  # -single: chromsome number >100
+    for m in $(ls 7a_fragment_shift_result/*.sam);do findPeaks 8b_peak_calling_result_homer/$(basename ${m%.sam})/ -region -minDist 150 -o 8b_peak_calling_result_homer/$(basename ${m%.sam});done  #(pc,2018,2018 pj)
+    for m in $(ls 8b_peak_calling_result_homer/*.peak); do grep -v "#" $m  | awk 'OFS="\t"{print $2,$3,$4,$1,$8,$5}' > $m.bed;done
 
 ### Homer peak merger between replciates by bedtools to get union THS sites (or pooled data, and two replicated peak,remove scaffold)
-mkdir 9merged_replicated_peaks
+    mkdir 9merged_replicated_peaks
 
-samples=$(ls 8b_peak_calling_result_homer/*.bed | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.peak\.bed//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
+    samples=$(ls 8b_peak_calling_result_homer/*.bed | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.peak\.bed//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
 
-for sample in $samples
-do 	#echo $sample #Mt_ATAC_C
+    for sample in $samples
+    do 	#echo $sample #Mt_ATAC_C
 	
 	sample_repeats_files=$(ls 8b_peak_calling_result_homer/$sample*.bed)
 	sample_repeats_num=$(ls 8b_peak_calling_result_homer/$sample*.bed|wc -l) #3
@@ -242,12 +241,12 @@ do 	#echo $sample #Mt_ATAC_C
 done
 
 ### MACS peak merge
-mkdir 9merged_replicated_peaks
+    mkdir 9merged_replicated_peaks
 
-samples=$(ls 8macs/*.narrowPeak | xargs -n 1 basename | sed 's/\.narrowPeak//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/-///g' | sort| uniq)
+    samples=$(ls 8macs/*.narrowPeak | xargs -n 1 basename | sed 's/\.narrowPeak//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/-///g' | sort| uniq)
 
-for sample in $samples
-do 	#echo $sample #Mt_ATAC_ C
+    for sample in $samples
+    do 	#echo $sample #Mt_ATAC_ C
 	
 	sample_repeats_files=$(ls 8macs/$sample*.narrowPeak)
 	sample_repeats_num=$(ls 8macs/$sample*.narrowPeak | wc -l) #count sample replicate number
