@@ -293,32 +293,32 @@ done
 	fi
 done
 ### IDR merge peaks between samples
-idr --samples P-1_peaks.narrowPeak P-3_peaks.narrowPeak --input-file-type narrowPeak --output-file idr.out.txt --plot
-awk '$5>=540' idr.out.txt > idr_0.05.txt
+    idr --samples P-1_peaks.narrowPeak P-3_peaks.narrowPeak --input-file-type narrowPeak --output-file idr.out.txt --plot
+    awk '$5>=540' idr.out.txt > idr_0.05.txt
 
 #### visualization 
-mkdir 10deep_tools_result 
-for down_sample in $(ls 7downsampled_replicates_results/*.bam); do deeptools -noralizeUsingRPKM -extendReads 150 wig ;done
+    mkdir 10deep_tools_result 
+    for down_sample in $(ls 7downsampled_replicates_results/*.bam); do deeptools -noralizeUsingRPKM -extendReads 150 wig ;done
 
 ### peak annotations (PeakAnnotator,annotatePeaks.pl,Peakannotation)
-mkdir 11peak_annotation_results
-for peak in $(merged_replciated_peak/); do R script $peak -o 11peak_annotation_result/; done  
+    mkdir 11peak_annotation_results
+    for peak in $(merged_replciated_peak/); do R script $peak -o 11peak_annotation_result/; done  
 
 ### motif enrichment  anlysis (meme-chip pipeline,need resize peak from homer, et. al)
-mkdir 12Motif_enrich 
-TARGET_LENGTH=300
+    mkdir 12Motif_enrich 
+    TARGET_LENGTH=300
 
-for m in $(ls 9merged_replicated_peaks/*.bed); do echo $m; awk -vF=${TARGET_LENGTH} 'BEGIN{ OFS="\t"; }{ len=$3-$2; diff=F-len; flank=int(diff/2); upflank=downflank=flank; if (diff%2==1) { downflank++; }; print $1, $2-upflank, $3+downflank; }' $m | bedtools sort > ${m%.bed}.resize.bed;done # resize peak length to constent length
+    for m in $(ls 9merged_replicated_peaks/*.bed); do echo $m; awk -vF=${TARGET_LENGTH} 'BEGIN{ OFS="\t"; }{ len=$3-$2; diff=F-len; flank=int(diff/2); upflank=downflank=flank; if (diff%2==1) { downflank++; }; print $1, $2-upflank, $3+downflank; }' $m | bedtools sort > ${m%.bed}.resize.bed;done # resize peak length to constent length
 
-for m in $(ls 9merged_replicated_peaks/*resize.bed);do bedtools getfasta -fi ~/genome/Medicago_truncatula/Medicago_truncatula.MedtrA17_4.0.31.dna.toplevel.fa -fo ${m%.resize.bed}.fa  -bed $m; done # get fasta sequences
+    for m in $(ls 9merged_replicated_peaks/*resize.bed);do bedtools getfasta -fi ~/genome/Medicago_truncatula/Medicago_truncatula.MedtrA17_4.0.31.dna.toplevel.fa -fo ${m%.resize.bed}.fa  -bed $m; done # get fasta sequences
 
-for m in $(ls 9merged_replicated_peaks/*.fa);do meme-chip -oc 12Motif_enrich/$(basename ${m%.fa}) -db ~/genome/Medicago_truncatula/Mtr_TF_binding_motifs.meme -meme-p 20 $m; done
+    for m in $(ls 9merged_replicated_peaks/*.fa);do meme-chip -oc 12Motif_enrich/$(basename ${m%.fa}) -db ~/genome/Medicago_truncatula/Mtr_TF_binding_motifs.meme -meme-p 20 $m; done
 
 #findMotifsGenome.pl
  
 ### ATAC-Seq Footprinting in peak (pyDNase (peak>100bp,100 MB reads,need merged bam and merged peak from replciates ?); HINT-ATAC(2019,Genome Biology))
-mkdir 13Motif_footprint
-for m in $(ls 7c_fragment_shift_result/*.bam); do wellington_footprints.py 9merged_replicated_peaks/Mt_ATAC_C.bed $m 13Motif_footprint/$(basename m{%.bam}) -o $(basename m{%.bam}) -p 10 -A; done
+    mkdir 13Motif_footprint
+    for m in $(ls 7c_fragment_shift_result/*.bam); do wellington_footprints.py 9merged_replicated_peaks/Mt_ATAC_C.bed $m 13Motif_footprint/$(basename m{%.bam}) -o $(basename m{%.bam}) -p 10 -A; done
 
  
 #rgt-hint footprinting --help
@@ -327,8 +327,8 @@ for m in $(ls 7c_fragment_shift_result/*.bam); do wellington_footprints.py 9merg
 fimo 
 
 ## TF-target gene netowrk
-bedtoos gene.bed > gene_up2kb_down_2.5kb.bed
-bedtools intersect gene_up2kb_down_2.5kb.bed footprint.bed > focus.footprint.txt
+    bedtoos gene.bed > gene_up2kb_down_2.5kb.bed
+    bedtools intersect gene_up2kb_down_2.5kb.bed footprint.bed > focus.footprint.txt
 
-motif in footprint with -2k,gene body 
+    motif in footprint with -2k,gene body 
 
