@@ -1,6 +1,6 @@
-ATAC-pipeline
-#!/bin/bash
-export LANG="en_US.UTF-8"
+## ATAC-pipeline
+	#!/bin/bash
+	export LANG="en_US.UTF-8"
 
 ### FastQC inspect
     fastq_files_dir="/data/wzf/Medicago_ATAC_public/1Fastq"
