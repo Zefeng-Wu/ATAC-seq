@@ -3,11 +3,12 @@ ATAC-pipeline
 export LANG="en_US.UTF-8"
 
 ### FastQC inspect
-fastq_files_dir="/data/wzf/Medicago_ATAC_public/1Fastq"
-cd $fastq_files_dir/../ # as the working directory
-mkdir 1a_fastqc
-for m in $(ls $fastq_files_dir/*.fastq); do echo $m; fastqc $m  -o 1a_fastqc; done
-multiqc 1a_fastqc
+
+    fastq_files_dir="/data/wzf/Medicago_ATAC_public/1Fastq"
+    cd $fastq_files_dir/../ # as the working directory
+    mkdir 1a_fastqc
+    for m in $(ls $fastq_files_dir/*.fastq); do echo $m; fastqc $m  -o 1a_fastqc; done
+    multiqc 1a_fastqc
 
 ### Fastq reads adapter detecting
 
