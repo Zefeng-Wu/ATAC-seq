@@ -188,7 +188,7 @@ for m in $(ls 7a_fragment_shift_result/*.sam);do makeTagDirectory 8b_peak_callin
 for m in $(ls 7a_fragment_shift_result/*.sam);do findPeaks 8b_peak_calling_result_homer/$(basename ${m%.sam})/ -region -minDist 150 -o 8b_peak_calling_result_homer/$(basename ${m%.sam});done  #(pc,2018,2018 pj)
 for m in $(ls 8b_peak_calling_result_homer/*.peak); do grep -v "#" $m  | awk 'OFS="\t"{print $2,$3,$4,$1,$8,$5}' > $m.bed;done
 
-### peak merger between replciates by bedtools to get union THS sites (or pooled data, and two replicated peak,remove scaffold)
+### Homer peak merger between replciates by bedtools to get union THS sites (or pooled data, and two replicated peak,remove scaffold)
 mkdir 9merged_replicated_peaks
 
 samples=$(ls 8b_peak_calling_result_homer/*.bed | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.peak\.bed//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
@@ -241,6 +241,61 @@ do 	#echo $sample #Mt_ATAC_C
 	fi
 done
 
+### MACS peak merge
+mkdir 9merged_replicated_peaks
+
+samples=$(ls 8macs/*.narrowPeak | xargs -n 1 basename | sed 's/\.narrowPeak//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/-///g' | sort| uniq)
+
+for sample in $samples
+do 	#echo $sample #Mt_ATAC_ C
+	
+	sample_repeats_files=$(ls 8macs/$sample*.narrowPeak)
+	sample_repeats_num=$(ls 8macs/$sample*.narrowPeak | wc -l) #count sample replicate number
+	
+	if [ $sample_repeats_num == 1 ]
+	then 
+		echo $sample ": has no replicates, just copy the bam file!"	
+		cp 8macs/$sample*.narrowPeak 9merged_replicated_peaks/
+		#grep -v "scaffold" 9merged_replicated_peaks/$sample*.narrowPeak > 9merged_replicated_peaks/$sample*.narrowPeak  # exclude scaffold peak
+	fi
+	
+	if [ $sample_repeats_num == 2 ]
+	then
+		repeat1_peak=$(ls 8macs/$sample*.narrowPeak| head -n 1)
+		repeat2_peak=$(ls 8macs/$sample*.narrowPeak| tail -n 1)
+		
+		bedtools intersect -a $repeat1_peak -b $repeat2_peak  -wa -wb -f 0.5 -F 0.5 > intersect_rep1_rep2.bed   # there may be a problem when a longer peak and a shorter peak are overlaped
+		cut -f1,2,3,4,5,6,7,8,9,10 intersect_rep1_rep2.bed > inter_rep1.bed
+		cut -f11,12,13,14,15,16,17,18,19,20 intersect_rep1_rep2.bed > inter_rep2.bed
+		cat inter_rep1.bed inter_rep2.bed | bedtools sort| bedtools merge -d 150 | grep -v "scaffold" > 9merged_replicated_peaks/$sample.narrowPeak
+		rm intersect_rep1_rep2.bed inter_rep*.bed
+	fi
+
+	if [ $sample_repeats_num == 3 ]
+	then
+		repeat1_peak=$(ls 8macs/$sample*.narrowPeak | head -n 1)
+		repeat2_peak=$(ls 8macs/$sample*.narrowPeak | sed -n 2p)
+		repeat3_peak=$(ls 8macs/$sample*.narrowPeak | tail -n 1)
+		
+		bedtools intersect -a $repeat1_peak -b $repeat2_peak  -wa -wb -f 0.5 -F 0.5 > intersect_rep1_rep2.bed
+		cut -f1,2,3,4,5,6 intersect_rep1_rep2.bed > inter_rep1_2.bed
+		cut -f7,8,9,10,11,12 intersect_rep1_rep2.bed > inter_rep2_1.bed
+
+		bedtools intersect -a $repeat2_peak -b $repeat3_peak  -wa -wb -f 0.5 -F 0.5 > intersect_rep2_rep3.bed
+		cut -f1,2,3,4,5,6 intersect_rep2_rep3.bed > inter_rep2_3.bed
+		cut -f7,8,9,10,11,12 intersect_rep2_rep3.bed > inter_rep3_2.bed
+		
+		bedtools intersect -a $repeat3_peak -b $repeat1_peak  -wa -wb -f 0.5 -F 0.5 > intersect_rep3_rep1.bed
+		cut -f1,2,3,4,5,6 intersect_rep3_rep1.bed > inter_rep3_1.bed
+		cut -f7,8,9,10,11,12 intersect_rep3_rep1.bed> inter_rep1_3.bed
+
+		cat inter_rep1_2.bed inter_rep2_1.bed inter_rep2_3.bed inter_rep3_2.bed inter_rep3_1.bed  inter_rep1_3.bed | bedtools sort| bedtools merge -d 150 | grep -v "scaffold" > 9merged_replicated_peaks/$sample.bed
+		rm intersect_rep1_rep2.bed intersect_rep2_rep3.bed intersect_rep3_rep1.bed inter_rep*.bed
+	fi
+done
+### IDR merge peaks between samples
+idr --samples P-1_peaks.narrowPeak P-3_peaks.narrowPeak --input-file-type narrowPeak --output-file idr.out.txt --plot
+awk '$5>=540' idr.out.txt > idr_0.05.txt
 
 #### visualization 
 mkdir 10deep_tools_result 
