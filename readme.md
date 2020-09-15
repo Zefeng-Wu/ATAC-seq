@@ -293,8 +293,7 @@ done
 	fi
 done
 ### IDR merge peaks between samples
-    idr --samples P-1_peaks.narrowPeak P-3_peaks.narrowPeak --input-file-type narrowPeak --output-file idr.out.txt --plot
-    awk '$5>=540' idr.out.txt > idr_0.05.txt
+    for m in $(ls 8macs/*-1_peaks.narrowPeak); do prefix=$(basename ${m%-1_peaks.narrowPeak}); idr --samples 8macs/$prefix-1_peaks.narrowPeak 8macs/$prefix-3_peaks.narrowPeak --input-file-type narrowPeak --idr-threshold 0.05 --output-file 9.3merged_replicated_peaks_idr/$prefix.idr.peak.txt --plot; done
 
 #### visualization 
     mkdir 10deep_tools_result 
