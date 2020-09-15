@@ -238,7 +238,7 @@ done
 		cat inter_rep1_2.bed inter_rep2_1.bed inter_rep2_3.bed inter_rep3_2.bed inter_rep3_1.bed  inter_rep1_3.bed | bedtools sort| bedtools merge -d 150 | grep -v "scaffold" > 9merged_replicated_peaks/$sample.bed
 		rm intersect_rep1_rep2.bed intersect_rep2_rep3.bed intersect_rep3_rep1.bed inter_rep*.bed
 	fi
-done
+	done
 
 ### MACS peak merge
     mkdir 9merged_replicated_peaks
@@ -324,7 +324,7 @@ done
 #rgt-hint footprinting --help
 
 ## Defining High-Confidence Target Sites for Transcription Factors
-fimo 
+    fimo 
 
 ## TF-target gene netowrk
     bedtoos gene.bed > gene_up2kb_down_2.5kb.bed
