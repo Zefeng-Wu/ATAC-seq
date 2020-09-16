@@ -291,7 +291,7 @@ done
 		cat inter_rep1_2.bed inter_rep2_1.bed inter_rep2_3.bed inter_rep3_2.bed inter_rep3_1.bed  inter_rep1_3.bed | bedtools sort| bedtools merge -d 150 | grep -v "scaffold" > 9merged_replicated_peaks/$sample.bed
 		rm intersect_rep1_rep2.bed intersect_rep2_rep3.bed intersect_rep3_rep1.bed inter_rep*.bed
 	fi
-done
+    done
 ### IDR merge peaks between samples
     for m in $(ls 8macs/*-1_peaks.narrowPeak); do prefix=$(basename ${m%-1_peaks.narrowPeak}); idr --samples 8macs/$prefix-1_peaks.narrowPeak 8macs/$prefix-3_peaks.narrowPeak --input-file-type narrowPeak --idr-threshold 0.05 --output-file 9.3merged_replicated_peaks_idr/$prefix.idr.peak.txt --plot; done
 
