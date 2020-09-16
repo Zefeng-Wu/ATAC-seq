@@ -15,7 +15,7 @@
 	adapter_detector="/home/WZF/softwares/detect_adapter.py"
 	for m in $(ls $fastq_files_dir/*.fastq); do echo $m; python3 $adapter_detector $m > 1b_adapters/$(basename $m).adpt;done
 
-### FASTQ read adaptor trimming
+### FASTQ read adaptor trimming (optional 1)
 
 	Adapter_error_rate=​0.1
 	mkdir 1c_trimed_fastq
@@ -49,6 +49,8 @@
 		cutadapt -m 5 -e $Adapter_error_rate -a $a_adapter -A $A_adapter -o 1c_trimed_fastq/${prefix}_1.fastq -p 1c_trimed_fastq/${prefix}_2.fastq  ${fq}_1.fastq ${fq}_2.fastq >>cutadapt.logs
 	fi
     done
+### Reads adapter trimming (option 2)
+    for m in $(ls 1.rawdata/*.R1.fastq.gz); do prefix=$(basename $m|sed 's/\.R1.fastq.gz//g'); echo $prefix;  java -jar ../../softwares/Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 20 1.rawdata/$prefix.R1.fastq.gz  1.rawdata/$prefix.R2.fastq.gz  1.2clean_data/$prefix.R1_paired.fq.gz 1.2clean_data/$prefix.R1_unpaired.fq.gz 1.2clean_data/$prefix.R2_paired.fq.gz 1.2clean_data/$prefix.R2_unpaired.fq.gz ILLUMINACLIP:/public/home/wuzefeng/softwares/Trimmomatic-0.39/adapters/NexteraPE-PE.fa:2:30:10:8:true LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36;done
 
 ### Read alignment (Bowtie2 aligner)
 
