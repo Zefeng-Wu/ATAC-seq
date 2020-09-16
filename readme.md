@@ -48,7 +48,7 @@
 		cp 1b_adapters/${prefix}_2.fastq.adpt 1b_adapters/${prefix}_1.fastq.adpt
 		cutadapt -m 5 -e $Adapter_error_rate -a $a_adapter -A $A_adapter -o 1c_trimed_fastq/${prefix}_1.fastq -p 1c_trimed_fastq/${prefix}_2.fastq  ${fq}_1.fastq ${fq}_2.fastq >>cutadapt.logs
 	fi
-done
+    done
 
 ### Read alignment (Bowtie2 aligner)
 
