@@ -125,7 +125,7 @@ done
 		done
 		
 	fi
-done
+    done
 
 
 ### fragment shift bam and fragement size distribution (deeptools:lose some information and the resulted bam can not be used in other softs,ATACseqQC,or bedpe)
@@ -146,7 +146,7 @@ done
 	else
 		Rscript Shift_bam.R -b $m -o 7a_fragment_shift_result/$(basename $m) -f 7b_fragemnt_size_distribution/ # the resulted bam are paired bam fies,memory cost ~10 x bam_size, and tiem costing!
 	fi
-done
+    done
 
 ### merge replicates bams #(from original replcated bams or sampled replcated bams, used for footprint) 
     mkdir 7c_merge_replicates_bams 
@@ -166,7 +166,7 @@ done
 	else
 		samtools merge -@ 10  7c_merge_replicates_bams/$sample.bam 7a_fragment_shift_result/$sample*.bam
 	fi
-done
+    done
 
 
 ### peak calling (homer,macs(macs2 callpeak -f BAMPE -q 0.001 --broad- cutoff 0.01 -g 17e9 --bw 300),hopspot:FDR < 0.01 with 8 reads,HMMRATAC)
