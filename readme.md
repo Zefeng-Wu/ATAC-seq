@@ -307,29 +307,17 @@
 
 ### motif enrichment  anlysis (meme-chip pipeline,need resize peak from homer, et. al)
     mkdir 12Motif_enrich 
-    TARGET_LENGTH=300
-
-    for m in $(ls 9merged_replicated_peaks/*.bed); do echo $m; awk -vF=${TARGET_LENGTH} 'BEGIN{ OFS="\t"; }{ len=$3-$2; diff=F-len; flank=int(diff/2); upflank=downflank=flank; if (diff%2==1) { downflank++; }; print $1, $2-upflank, $3+downflank; }' $m | bedtools sort > ${m%.bed}.resize.bed;done # resize peak length to constent length
+    for m in $(ls 9merge_peak_by_idr/*.bed); do echo $m; awk -F '\t' '{X=250; mid=(int($2)+int($3))/2;printf("%s\t%d\t%d\n",$1,(mid-X<0?0:mid-X),mid+X);}' $m | bedtools sort > 10Motif_enrich/$(basename ${m%.bed}).resize.bed;done
 
     for m in $(ls 9merged_replicated_peaks/*resize.bed);do bedtools getfasta -fi ~/genome/Medicago_truncatula/Medicago_truncatula.MedtrA17_4.0.31.dna.toplevel.fa -fo ${m%.resize.bed}.fa  -bed $m; done # get fasta sequences
 
     for m in $(ls 9merged_replicated_peaks/*.fa);do meme-chip -oc 12Motif_enrich/$(basename ${m%.fa}) -db ~/genome/Medicago_truncatula/Mtr_TF_binding_motifs.meme -meme-p 20 $m; done
 
-#findMotifsGenome.pl
+### （optional）findMotifsGenome.pl
  
 ### ATAC-Seq Footprinting in peak (pyDNase (peak>100bp,100 MB reads,need merged bam and merged peak from replciates ?); HINT-ATAC(2019,Genome Biology))
     mkdir 13Motif_footprint
     for m in $(ls 7c_fragment_shift_result/*.bam); do wellington_footprints.py 9merged_replicated_peaks/Mt_ATAC_C.bed $m 13Motif_footprint/$(basename m{%.bam}) -o $(basename m{%.bam}) -p 10 -A; done
+    #rgt-hint footprinting --help
 
- 
-#rgt-hint footprinting --help
-
-## Defining High-Confidence Target Sites for Transcription Factors
-    fimo 
-
-## TF-target gene netowrk
-    bedtoos gene.bed > gene_up2kb_down_2.5kb.bed
-    bedtools intersect gene_up2kb_down_2.5kb.bed footprint.bed > focus.footprint.txt
-
-    motif in footprint with -2k,gene body 
 
