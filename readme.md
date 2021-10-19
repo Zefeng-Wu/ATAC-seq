@@ -150,7 +150,7 @@
 	fi
     done
 
-### merge replicates bams #(from original replcated bams or sampled replcated bams, used for footprint) 
+### merge replicates bams #(from original replicated bams or sampled replicated bams, used for footprint) 
     mkdir 7c_merge_replicates_bams 
 
     samples=$(ls 7a_fragment_shift_result/*.bam | xargs -n 1 basename | sed 's/\.uniq\.sorted\.dedup\.bam//g' | sed -r 's/[0-9]{1,}$//g'| sed s'/*\///g' | sort| uniq)
